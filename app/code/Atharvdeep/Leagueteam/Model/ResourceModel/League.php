@@ -10,6 +10,6 @@ class League extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
      */
     protected function _construct()
     {
-        $this->_init('artharvdeep_leagueteam', 'pk');
+        $this->_init('atharvdeep_leagueteam', 'pk');
     }
 }

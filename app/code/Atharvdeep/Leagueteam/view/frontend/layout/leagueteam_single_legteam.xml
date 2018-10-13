@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * League team page layout.
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" layout="3columns" xsi:noNamespaceSchemaLocation="../../../../../../../lib/internal/Magento/Framework/View/Layout/etc/page_configuration.xsd">
+<update handle="customer_account"/>
+<body>
+    <referenceContainer name="content">         
+        <block class="Atharvdeep\Leagueteam\Block\Single\Legteam" name="singleleg" template="Atharvdeep_Leagueteam::single/legteam.phtml">
+        </block>
+    </referenceContainer>
+</body>
+</page>

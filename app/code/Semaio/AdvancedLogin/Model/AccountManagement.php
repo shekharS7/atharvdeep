@@ -349,7 +349,7 @@ class AccountManagement extends CustomerAccountManagement
 
         // Associate member_id with customer
         if (!$customer->getCustomAttribute('member_id')) {
-            $memberId = mt_rand(1000, 9999);
+            $memberId = mt_rand(10, 99);
             ;
             $customer->setCustomAttribute('member_id', $memberId);
         }

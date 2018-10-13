@@ -52,11 +52,23 @@ class InstallSchema implements InstallSchemaInterface
             ['nullable' => false, 'default' => '0'],
             'Member Id'
         )->addColumn(
-            'parent_id',
+            'member_name',
+            \Magento\Framework\DB\Ddl\Table::TYPE_TEXT,
+            25,
+            ['nullable' => false, 'default' => 'null'],
+            'Member Name'
+        )->addColumn(
+            'sponsor_id',
             \Magento\Framework\DB\Ddl\Table::TYPE_TEXT,
             12,
             ['nullable' => false, 'default' => '0'],
-            'Parent Id'
+            'Sponsor Id'
+        )->addColumn(
+            'sponsor_name',
+            \Magento\Framework\DB\Ddl\Table::TYPE_TEXT,
+            25,
+            ['nullable' => false, 'default' => 'null'],
+            'Sponser Name'
         )->addColumn(
             'level1',
             \Magento\Framework\DB\Ddl\Table::TYPE_TEXT,
@@ -74,7 +86,7 @@ class InstallSchema implements InstallSchemaInterface
             \Magento\Framework\DB\Ddl\Table::TYPE_TEXT,
             null,
             ['nullable' => false, 'default' => ''],
-            'Level 1'
+            'Level 3'
         )->addColumn(
             'level4',
             \Magento\Framework\DB\Ddl\Table::TYPE_TEXT,
@@ -135,6 +147,12 @@ class InstallSchema implements InstallSchemaInterface
             null,
             ['nullable' => false, 'default' => ''],
             'Tree Path'
+        )->addColumn(
+            'child_count',
+            \Magento\Framework\DB\Ddl\Table::TYPE_INTEGER,
+            null,
+            ['nullable' => true, 'default' => null],
+            'Level 2 Children Only'
         )->addIndex(
             $installer->getIdxName('atharvdeep_leagueteam', ['member_id']),
             ['member_id'],
