@@ -25,7 +25,7 @@
         
         <css src="//fonts.googleapis.com/css?family=Montserrat:400,700" src_type="url"/>
         <css src="//fonts.googleapis.com/css?family=Roboto:400,100,300,500,700,900" src_type="url"/>
-        <css src="css/custom.css" />
+        <css src="css/custom.css" media="all"/>
 
         <script src="jquery.js" />
         <script src="bootstrap/js/bootstrap.min.js" />

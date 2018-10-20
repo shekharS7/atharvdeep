@@ -18,7 +18,6 @@ class League extends AbstractHelper
 {
 
     const XML_PATH_LEAGUETEAM = 'customer/leagueteam/active';
-  
     /**
      * Login constructor.
      *

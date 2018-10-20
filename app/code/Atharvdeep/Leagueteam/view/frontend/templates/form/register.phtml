@@ -18,6 +18,12 @@
                 <input type="text" name="sponsor_id" id="sponsor_id" title="<?php /* @escapeNotVerified */ echo __('Sponsor Id') ?>" class="input-text" data-validate="{required:true}">
             </div>
         </div>
+        <div class="field required">
+            <label for="sponsor_name" class="label"><span><?php /* @escapeNotVerified */ echo __('Sponsor Name') ?></span></label>
+            <div class="control">
+                <input type="text" name="sponsor_name" id="sponsor_name" title="<?php /* @escapeNotVerified */ echo __('Sponsor Name') ?>" class="input-text" data-validate="{required:true}" readonly="readonly">
+            </div>
+        </div>
     </fieldset>
     <fieldset class="fieldset create info">
         <legend class="legend"><span><?php /* @escapeNotVerified */ echo __('Personal Information') ?></span></legend><br>
@@ -307,3 +313,30 @@ require([
     }
 </script>
 <?php endif; ?>
+<script>
+require([
+    'jquery',
+    'mage/mage'
+], function($){
+$("#sponsor_id").change(function(){
+    var member_id = $('#sponsor_id').val();
+        var customurl = "<?php echo $this->getUrl().'leagueteam/ajax/index'?>";
+            $.ajax({
+                url: customurl,
+                type: 'POST',
+                dataType: 'json',
+                data: {
+                    member_id: member_id,
+                },
+            complete: function(response) {             
+                MemberName = response.responseJSON.MemberName;
+                $('#sponsor_name').val(MemberName);
+                console.log(response.responseJSON.MemberName);   
+                },
+                error: function (xhr, status, errorThrown) {
+                    console.log('Error happens. Try again.');
+                }
+            });
+    });
+});
+</script>

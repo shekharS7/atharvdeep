@@ -21,15 +21,8 @@ $primaryKey = 1;
 $league = $objectManager->create('Atharvdeep\Leagueteam\Model\League');
 $model = $league->getCollection()->addFieldToSelect('*')
                                  ->addFieldToFilter('member_id', $sponsor_id);
-$parent = $model->getFirstItem()->getSponsorId();
-
+echo $parent = $model->getFirstItem()->getMemberName();
 
 $customerObj = $objectManager->get('Magento\Customer\Model\Session');
            // echo $sponsorName = $customerObj->getCustomer()->getId();
-
-
 $customerSession = $objectManager->create('Magento\Customer\Model\Session');
-
-if ($customerSession->isLoggedIn()) {
-    echo $customerSession->getCustomerId();
-}
