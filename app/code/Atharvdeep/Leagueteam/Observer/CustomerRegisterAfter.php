@@ -25,11 +25,13 @@ class CustomerRegisterAfter implements ObserverInterface
     public function __construct(
         \Magento\Customer\Api\CustomerRepositoryInterface $customerRepository,
         \Magento\Framework\App\RequestInterface $request,
-        ObjectManagerInterface $objectManager
+        ObjectManagerInterface $objectManager,
+        \Magento\Framework\Event\Manager $eventManager
     ) {
         $this->customerRepository = $customerRepository;
         $this->request = $request;
         $this->objectManager = $objectManager;
+        $this->eventManager = $eventManager;
     }
 
     /**
@@ -82,6 +84,13 @@ class CustomerRegisterAfter implements ObserverInterface
             } catch (\Execption $e) {
                 $logger->critical($e->getMessage());
             }
+            $this->eventManager->dispatch(
+                'after_registration_bv_distribution',
+                [
+                    'member_id' => $memberId,
+                    'customer' => $customer
+                ]
+            );
         }
     }
 
