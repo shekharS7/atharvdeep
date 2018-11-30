@@ -66,9 +66,9 @@ class MemberBvDistribution implements ObserverInterface
      */
     public function execute(\Magento\Framework\Event\Observer $observer)
     {
-        $customer = $observer->getData('customer');
-        $memberId = $observer->getData('member_id');
-        $memberColl = $this->leagueFactory->create()->getCollection()->addFieldToFilter('member_id', $memberId);
+        $customerId = $observer->getData('customer_id');
+        //$memberId = $observer->getData('member_id');
+        $memberColl = $this->leagueFactory->create()->getCollection()->addFieldToFilter('customer_id', $customerId);
         $memberPath = $memberColl->getFirstItem()->getPath();
         $levelMembers = explode("\\", $memberPath);
         $membernos = count($levelMembers);

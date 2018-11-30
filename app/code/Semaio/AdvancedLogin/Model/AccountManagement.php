@@ -171,6 +171,7 @@ class AccountManagement extends CustomerAccountManagement
         $this->storeManager = $storeManager;
         $this->advancedLoginConfigProvider = $advancedLoginConfigProvider;
         $this->mathRandom = $mathRandom;
+        $this->addressRepository = $addressRepository;
     }
 
     /**

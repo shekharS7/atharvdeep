@@ -15,11 +15,11 @@
         <observer name="reward_points_wishlist_share_message" instance="BrainActs\RewardPoints\Observer\Message\AfterShareWishList" />
     </event>
 
-
+<!-- 
     <event name="controller_action_predispatch_customer_account_create">
         <observer name="rw_controller_action_predispatch_customer_account_create"
                   instance="BrainActs\RewardPoints\Observer\Message\BeforeCreateCustomerAccount" />
-    </event>
+    </event> -->
 
     <event name="controller_action_predispatch_wishlist_index_share">
         <observer name="rw_controller_action_predispatch_wishlist_index_share"

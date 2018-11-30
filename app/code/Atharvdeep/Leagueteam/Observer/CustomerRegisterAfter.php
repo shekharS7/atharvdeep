@@ -26,12 +26,18 @@ class CustomerRegisterAfter implements ObserverInterface
         \Magento\Customer\Api\CustomerRepositoryInterface $customerRepository,
         \Magento\Framework\App\RequestInterface $request,
         ObjectManagerInterface $objectManager,
-        \Magento\Framework\Event\Manager $eventManager
+        \Psr\Log\LoggerInterface $logger,
+        \Magento\Framework\App\Action\Context $context,
+        \Magento\Framework\App\ResponseInterface $response,
+        \Magento\Framework\UrlInterface $urlInterface
     ) {
         $this->customerRepository = $customerRepository;
         $this->request = $request;
         $this->objectManager = $objectManager;
-        $this->eventManager = $eventManager;
+        $this->logger = $logger;
+        $this->context = $context;
+        $this->response = $response;
+        $this->urlInterface = $urlInterface;
     }
 
     /**
@@ -68,6 +74,7 @@ class CustomerRegisterAfter implements ObserverInterface
                 } else {
                     $path = $memberPath."\\".$memberId;
                 }
+                $data['customer_id'] = $customer->getId();
                 $data['member_id'] = $memberId;
                 $data['member_name'] = $memberName;
                 $data['sponsor_id'] = $sponsorId;
@@ -82,15 +89,18 @@ class CustomerRegisterAfter implements ObserverInterface
                     $this->levelDistribution($memberId, $parent);
                 }
             } catch (\Execption $e) {
-                $logger->critical($e->getMessage());
+                $this->logger->critical($e->getMessage());
             }
-            $this->eventManager->dispatch(
-                'after_registration_bv_distribution',
-                [
-                    'member_id' => $memberId,
-                    'customer' => $customer
-                ]
-            );
+            /*
+            Create a order of joining fee for registration in Atharvdeep.
+            */
+        
+             $redirectionUrl = $this->urlInterface->getUrl('leagueteam/registration/joiningfee', ['customer_id' => $customer->getId()]); // give here your
+            $this->logger->debug(__METHOD__.$redirectionUrl);
+
+            $this->response->setRedirect($redirectionUrl)->sendResponse();
+
+            exit(0);
         }
     }
 
