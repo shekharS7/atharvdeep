@@ -15,7 +15,9 @@ class Joiningfee extends \Magento\Framework\App\Action\Action
         \Psr\Log\LoggerInterface $logger,
         \Magento\Framework\App\RequestInterface $request,
         \Magento\Framework\ObjectManagerInterface $objectManager,
-        \Magento\Framework\Event\Manager $eventManager
+        \Magento\Framework\Event\Manager $eventManager,
+        \Magento\Customer\Model\Session $customerSession,
+        \Magento\Framework\Message\ManagerInterface $messageManager
     ) {
 
         $this->pageFactory = $pageFactory;
@@ -29,6 +31,7 @@ class Joiningfee extends \Magento\Framework\App\Action\Action
         $this->request = $request;
         $this->objectManager = $objectManager;
         $this->eventManager = $eventManager;
+        $this->customerSession = $customerSession;
         parent::__construct($context);
     }
     
@@ -101,15 +104,18 @@ class Joiningfee extends \Magento\Framework\App\Action\Action
             $cart->collectTotals();
             $cart = $this->cartRepository->get($cart->getId());
             $order_id = $this->cartManagement->placeOrder($cart->getId());
-            
+            $cusesvalue = $this->customerSession->isLoggedIn();
+            $this->logger->debug('customerSession value:: '.$cusesvalue);
             $resultRedirect = $this->resultRedirectFactory->create();
-            $resultRedirect->setPath('instamojo/redirect');
+            $resultRedirect->setPath('instamojo/registration/redirect');
             return $resultRedirect;
         } catch (\Exception $e) {
-            //echo $e->getMessage();
-            $this->logger->debug('Joiningfee Error:: '.$e->getMessage());
+            $this->customerSession->logout();
+            $this->messageManager->addError('Unable to Proceed for payment 
+                ');
+           // $this->logger->debug('Joiningfee Error:: '.$e->getMessage());
             $resultRedirect = $this->resultRedirectFactory->create();
-            $resultRedirect->setPath('checkout/cart');
+            $resultRedirect->setPath('customer/account/login');
             return $resultRedirect;
         }
     }

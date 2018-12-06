@@ -1,5 +1,5 @@
 <?php
-namespace Instamojo\Imojo\Controller\Response;
+namespace Instamojo\Imojo\Controller\Registration;
 
 use Magento\Framework\View\Result\PageFactory;
 use Magento\Framework\App\Action\Context;
@@ -12,7 +12,7 @@ use Magento\Framework\App\Response\Http;
 use Magento\Sales\Model\Order\Payment\Transaction\Builder as TransactionBuilder;
 use Magento\Sales\Model\Order\Payment\Transaction;
 
-class Index extends \Magento\Framework\App\Action\Action
+class Response extends \Magento\Framework\App\Action\Action
 {
     protected $_objectmanager;
     protected $_checkoutSession;
@@ -36,7 +36,10 @@ class Index extends \Magento\Framework\App\Action\Action
         TransactionBuilder $tb,
         \Magento\Checkout\Model\Cart $cart,
         \Magento\AdminNotification\Model\Inbox $inbox,
-        \Magento\Sales\Api\TransactionRepositoryInterface $transactionRepository
+        \Magento\Sales\Api\TransactionRepositoryInterface $transactionRepository,
+        \Magento\Framework\Event\Manager $eventManager,
+        \Magento\Customer\Api\CustomerRepositoryInterface $customerRepository,
+        \Magento\Customer\Model\Session $customerSession
     ) {
 
       
@@ -49,9 +52,11 @@ class Index extends \Magento\Framework\App\Action\Action
         $this->cart = $cart;
         $this->inbox = $inbox;
         $this->transactionRepository = $transactionRepository;
+        $this->eventManager = $eventManager;
         $this->urlBuilder = \Magento\Framework\App\ObjectManager::getInstance()
                             ->get('Magento\Framework\UrlInterface');
-        
+        $this->customerRepository = $customerRepository;
+        $this->customerSession = $customerSession;
         parent::__construct($context);
     }
 
@@ -60,7 +65,6 @@ class Index extends \Magento\Framework\App\Action\Action
         $payment_id = $this->getRequest()->getParam('payment_id');
         $payment_request_id = $this->getRequest()->getParam('id');
         $storedPaymentRequestId = $this->checkoutSession->getPaymentRequestId();
-        
         if ($payment_id and $payment_request_id) {
             $this->logger->info("Callback called with payment ID: $payment_id and payment request ID : $payment_request_id ");
       
@@ -98,6 +102,8 @@ class Index extends \Magento\Framework\App\Action\Action
                     # get order and payment objects
                     $order = $this->orderFactory->create()->loadByIncrementId($orderId);
                     $payment = $order->getPayment();
+                    $customerId = $order->getCustomerId();
+
                     //print_R($payment);
                     
                     
@@ -106,8 +112,8 @@ class Index extends \Magento\Framework\App\Action\Action
                             //$payment->setTransactionId($payment_id);
                               
                             //$trn = $payment->addTransaction(\Magento\Sales\Model\Order\Payment\Transaction::TYPE_CAPTURE,null,true);
-                            $order->setState(Order::STATE_NEW)
-                            ->setStatus($order->getConfig()->getStateDefaultStatus(Order::STATE_NEW));
+                            $order->setState(Order::STATE_PROCESSING)
+                            ->setStatus($order->getConfig()->getStateDefaultStatus(Order::STATE_PROCESSING));
                             
                             $transaction = $this->transactionRepository->getByTransactionId(
                                 "-1",
@@ -144,10 +150,19 @@ class Index extends \Magento\Framework\App\Action\Action
                             
                             $payment->save();
                             $order->save();
-                            
+                             $this->eventManager->dispatch(
+                                 'after_registration_bv_distribution',
+                                 [
+                                 'customer_id' => $customerId
+                                 ]
+                             );
+                            $customer = $this->customerRepository->getById($customerId);
+                            $customer->setCustomAttribute('account_is_active', 1);
+                            $this->customerRepository->save($customer);
                             $this->logger->info("Payment for $payment_id was credited.");
-                              
-                            $this->_redirect($this->urlBuilder->getUrl('checkout/onepage/success/', ['_secure' => true]));
+                            $this->customerSession->logout();
+
+                            $this->_redirect($this->urlBuilder->getUrl('leagueteam/index/thankyou', ['order_id'=>$orderId]));
                         } elseif ($payment_status == "failed") {
                             $transaction = $this->transactionRepository->getByTransactionId(
                                 "-1",
@@ -169,23 +184,17 @@ class Index extends \Magento\Framework\App\Action\Action
                                 $transaction,
                                 "The transaction is failed"
                             );
-                            try {
-                                $items = $order->getItemsCollection();
-                                foreach ($items as $item) {
-                                    $this->cart->addOrderItem($item);
-                                }
-                                $this->cart->save();
-                            } catch (Exception $e) {
-                                $message = $e->getMessage();
-                                $this->logger->info("Not able to add Items to cart Exception MEssage".$message);
-                            }
-                            $order->cancel();
+                         
 
                             $payment->setParentTransactionId(null);
                             $payment->save();
                             $order->save();
+                            $customer = $this->customerRepository->getById($customerId);
+                            $customer->setCustomAttribute('account_is_active', 0);
+                            $this->customerRepository->save($customer);
                             $this->logger->info("Payment for $payment_id failed.");
-                            $this->_redirect($this->urlBuilder->getUrl('checkout/cart', ['_secure' => true]));
+                            $this->customerSession->logout();
+                            $this->_redirect($this->urlBuilder->getUrl('leagueteam/index/thankyou', ['order_id'=>$orderId]));
                         }
                     } else {
                         $this->logger->info("Order not found with order id $orderId");
@@ -193,7 +202,7 @@ class Index extends \Magento\Framework\App\Action\Action
                 }
             } catch (CurlException $e) {
                 $this->logger->info($e);
-                    $this->_redirect($this->urlBuilder->getBaseUrl());
+                $this->_redirect($this->urlBuilder->getBaseUrl());
             } catch (ValidationException $e) {
                 // handle exceptions releted to response from the server.
                 $this->logger->info($e->getMessage()." with ");

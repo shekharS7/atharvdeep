@@ -29,6 +29,8 @@ class CustomerRegisterAfter implements ObserverInterface
         \Psr\Log\LoggerInterface $logger,
         \Magento\Framework\App\Action\Context $context,
         \Magento\Framework\App\ResponseInterface $response,
+        \Magento\Framework\App\ResponseFactory $responseFactory,
+        \Magento\Customer\Model\Session $session,
         \Magento\Framework\UrlInterface $urlInterface
     ) {
         $this->customerRepository = $customerRepository;
@@ -36,7 +38,9 @@ class CustomerRegisterAfter implements ObserverInterface
         $this->objectManager = $objectManager;
         $this->logger = $logger;
         $this->context = $context;
+        $this->responseFactory = $responseFactory;
         $this->response = $response;
+        $this->session = $session;
         $this->urlInterface = $urlInterface;
     }
 
@@ -98,9 +102,12 @@ class CustomerRegisterAfter implements ObserverInterface
              $redirectionUrl = $this->urlInterface->getUrl('leagueteam/registration/joiningfee', ['customer_id' => $customer->getId()]); // give here your
             $this->logger->debug(__METHOD__.$redirectionUrl);
 
-            $this->response->setRedirect($redirectionUrl)->sendResponse();
-
-            exit(0);
+          //  $this->response->setRedirect($redirectionUrl)->sendResponse();
+          //   exit(0);
+    //   $this->responseFactory->create()->setRedirect($redirectionUrl)->sendResponse();
+      //      die();
+            $this->session->setBeforeAuthUrl($redirectionUrl);
+            return $this;
         }
     }
 

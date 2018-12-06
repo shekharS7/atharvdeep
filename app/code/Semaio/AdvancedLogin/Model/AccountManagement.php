@@ -195,6 +195,11 @@ class AccountManagement extends CustomerAccountManagement
             throw new InvalidEmailOrPasswordException(__('Invalid login or password.'));
         }
 
+        if ($customer->getCustomAttribute('account_is_active')) {
+            if ($customer->getCustomAttribute('account_is_active')->getValue()== 0) {
+                throw new InvalidEmailOrPasswordException(__('Invalid login or password.'));
+            }
+        }
         $this->checkPasswordStrength($password);
         $hash = $this->customerRegistry->retrieveSecureData($customer->getId())->getPasswordHash();
         if (!$this->encryptor->validateHash($password, $hash)) {
@@ -347,12 +352,16 @@ class AccountManagement extends CustomerAccountManagement
             $storeName = $this->storeManager->getStore($customer->getStoreId())->getName();
             $customer->setCreatedIn($storeName);
         }
-
+        $customerIds = $this->customerFactory->create()->getCollection()
+                ->addAttributeToSelect('entity_id')
+                ->addAttributeToSort('entity_id', 'DESC');
+        $customerId = $customerIds->getFirstItem()->getId();
         // Associate member_id with customer
         if (!$customer->getCustomAttribute('member_id')) {
-            $memberId = mt_rand(10, 99);
-            ;
+            $formattedNumber = sprintf('%05d', $customerId+1);
+            $memberId = 'AVD'.$formattedNumber;
             $customer->setCustomAttribute('member_id', $memberId);
+            $customer->setCustomAttribute('account_is_active', 1);
         }
 
         $customerAddresses = $customer->getAddresses() ?: [];
