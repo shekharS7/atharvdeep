@@ -11,10 +11,12 @@ class Legteam extends \Magento\Framework\View\Element\Template
         \Magento\Framework\View\Element\Template\Context $context,
         \Magento\Framework\ObjectManagerInterface $objectManager,
         \Atharvdeep\Leagueteam\Model\LeagueFactory $leagueFactory,
+        \Magento\Customer\Model\Session $customerSession,
         array $data = []
     ) {
         $this->leagueFactory = $leagueFactory;
         $this->objectManager = $objectManager;
+        $this->customerSession = $customerSession;
         parent::__construct($context, $data);
         //get collection of data
         $this->pageConfig->getTitle()->set(__('Single League Team'));
@@ -31,8 +33,8 @@ class Legteam extends \Magento\Framework\View\Element\Template
    
     public function getMemberId()
     {
-        $customer = $this->objectManager->create('Magento\Customer\Model\Session');
-        return $customer->getCustomer()->getMemberId();
+        $customer = $this->customerSession->getCustomer();
+        return $customer->getMemberId();
     }
 
     protected function _prepareLayout()
