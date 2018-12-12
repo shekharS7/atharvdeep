@@ -1,6 +1,8 @@
 <?php
 namespace Atharvdeep\Leagueteam\Block\Single;
 
+use Magento\Framework\Exception\NoSuchEntityException;
+
 class Legteam extends \Magento\Framework\View\Element\Template
 {
     protected $leagueFactory;
@@ -11,12 +13,12 @@ class Legteam extends \Magento\Framework\View\Element\Template
         \Magento\Framework\View\Element\Template\Context $context,
         \Magento\Framework\ObjectManagerInterface $objectManager,
         \Atharvdeep\Leagueteam\Model\LeagueFactory $leagueFactory,
-        \Magento\Customer\Model\Session $customerSession,
+        \Magento\Customer\Helper\Session\CurrentCustomer $currentCustomer,
         array $data = []
     ) {
         $this->leagueFactory = $leagueFactory;
         $this->objectManager = $objectManager;
-        $this->customerSession = $customerSession;
+        $this->currentCustomer = $currentCustomer;
         parent::__construct($context, $data);
         //get collection of data
         $this->pageConfig->getTitle()->set(__('Single League Team'));
@@ -30,11 +32,24 @@ class Legteam extends \Magento\Framework\View\Element\Template
          return $collection;
     }
 
+    /**
+     * Returns the Magento Customer Model for this block
+     *
+     * @return \Magento\Customer\Api\Data\CustomerInterface|null
+     */
+    
+    public function getCustomer()
+    {
+        try {
+            return $this->currentCustomer->getCustomer();
+        } catch (NoSuchEntityException $e) {
+            return null;
+        }
+    }
    
     public function getMemberId()
     {
-        $customer = $this->customerSession->getCustomer();
-        return $customer->getMemberId();
+        return $this->getCustomer()->getCustomAttribute('member_id')->getValue();
     }
 
     protected function _prepareLayout()
