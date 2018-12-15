@@ -30,4 +30,8 @@
    <event name="after_registration_bv_distribution">
         <observer name="bv_distribution" instance="BrainActs\RewardPoints\Observer\BV\MemberBvDistribution"/>
     </event>
+    
+    <event name="checkout_onepage_controller_success_action">
+        <observer name="bv_distribution_after_order" instance="BrainActs\RewardPoints\Observer\BV\AfterOrderDistribution"/>
+    </event>
 </config>

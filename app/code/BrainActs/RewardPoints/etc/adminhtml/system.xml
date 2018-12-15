@@ -83,6 +83,39 @@
                     <label>Level 10</label>
                 </field>
             </group>
+            <group id="bvonsale" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
+                <label>BV distribution in % on purchage </label>
+                <field id="level1" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Level 1</label>
+                </field>
+                <field id="level2" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Level 2</label>
+                </field>
+                <field id="level3" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Level 3 </label>
+                </field>
+                <field id="level4" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Level 4</label>
+                </field>
+                <field id="level5" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Level 5</label>
+                </field>
+                <field id="level6" translate="label" type="text" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="0">
+                <label>Level 6 </label>
+                </field>
+                <field id="level7" translate="label" type="text" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Level 7</label>
+                </field>
+                <field id="level8" translate="label" type="text" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Level 8</label>
+                </field>
+                <field id="level9" translate="label" type="text" sortOrder="90" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Level 9 </label>
+                </field>
+                <field id="level10" translate="label" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Level 10</label>
+                </field>
+            </group>
         </section>
     </system>
 </config>

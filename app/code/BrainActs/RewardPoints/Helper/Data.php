@@ -182,4 +182,15 @@ class Data extends AbstractHelper
             \Magento\Store\Model\ScopeInterface::SCOPE_STORE
         );
     }
+    public function getBvLevelPercent($level)
+    {
+        if (!$this->isEnabled()) {
+            return false;
+        }
+
+        return $this->scopeConfig->getValue(
+            'brainacts_reward_points/bvonsale/'.$level,
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
+        );
+    }
 }
