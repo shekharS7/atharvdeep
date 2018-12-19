@@ -75,9 +75,11 @@ class Singleleg extends \Magento\Backend\Block\Widget\Grid\Extended
     protected function _prepareCollection()
     {
         $customerId = $this->_coreRegistry->registry(RegistryConstants::CURRENT_CUSTOMER_ID);
-        $collection = $this->leagueFactory->create()->getCollection()
-                                            ->addFieldToSelect('*')
-                                            ->addFieldToFilter('path', array('regexp' => $customerId.'[\\]'));
+        $collection = $this->leagueFactory->create()->getCollection();
+        $memberCollection = $collection->addFieldToFilter('customer_id', ['eq' => $customerId]);
+        $memberId = $memberCollection->getFirstItem()->getMemberId();
+
+        $collection = $this->leagueFactory->create()->getCollection()->addFieldToSelect('*')->addFieldToFilter('path', array('regexp' => $memberId.'[\\]'));
         $this->setCollection($collection);
         return parent::_prepareCollection();
     }

@@ -16,6 +16,11 @@
                     <argument name="label" xsi:type="string">Reward Points History</argument>
                 </action>
             </block>
+             <block class="BrainActs\RewardPoints\Block\Adminhtml\Customer\View\Tab\Payout" name="customer_edit_tab_payout" >
+              <action method="setTabLabel">
+                  <argument name="label" xsi:type="string">Customer Payout</argument>
+              </action>
+            </block>
         </referenceBlock>
     </body>
 </page>
