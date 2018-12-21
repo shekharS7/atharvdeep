@@ -142,6 +142,8 @@ class CustomerRegisterAfter implements ObserverInterface
                 $childCount = $model->getFirstItem()->getChildCount()+1;
                 $league->setData('child_count', $childCount);
             }
+            $childTotal = $model->getFirstItem()->getChildTotal()+1;
+            $league->setData('child_total', $childTotal);
             $league->setPk($primaryKey);
             $league->save();
             $count++;

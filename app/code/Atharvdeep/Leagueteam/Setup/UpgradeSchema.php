@@ -32,6 +32,29 @@ class UpgradeSchema implements UpgradeSchemaInterface
 
                 ]
             );
+        }   if (version_compare($context->getVersion(), '1.0.2', '<')) {
+            $installer->getConnection()->addColumn(
+                $installer->getTable('atharvdeep_leagueteam'),
+                'child_total',
+                [
+                    'type' => \Magento\Framework\DB\Ddl\Table::TYPE_INTEGER,
+                    'length' => 10,
+                    'nullable' => true,
+                    'default' => null,
+                    'comment' => 'Child Total'
+                ]
+            );
+            $installer->getConnection()->addColumn(
+                $installer->getTable('atharvdeep_leagueteam'),
+                'manager',
+                [
+                    'type' => \Magento\Framework\DB\Ddl\Table::TYPE_TEXT,
+                    'length' => 25,
+                    'nullable' => true,
+                    'default' => null,
+                    'comment' => 'Manager'
+                ]
+            );
         }
         $installer->endSetup();
     }
