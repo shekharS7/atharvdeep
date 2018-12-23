@@ -61,12 +61,40 @@ class UpdateDays
         $resource = $this->objectManager->get('Magento\Framework\App\ResourceConnection');
         $connection = $resource->getConnection();
         $tableName = $resource->getTableName('atharvdeep_leagueteam');
+        /**
+         *Setting silver manager
+         */
         //Select Data from table
-        $sql = "Select * FROM " . $tableName." where (LENGTH(level2) - LENGTH(REPLACE(level2, ',', ''))+1) = 5  and floor(TIME_TO_SEC(TIMEDIFF(CURRENT_TIMESTAMP, `created_at`))/86400) <= 15";
-        $result = $connection->fetchAll($sql);
-        foreach ($result as $value) {
+        $sql = "Select * FROM " . $tableName." where (LENGTH(level2) - LENGTH(REPLACE(level2, ',', ''))+1) = 5 and  (LENGTH(level3) - LENGTH(REPLACE(level3, ',', ''))+1) = 25  and floor(TIME_TO_SEC(TIMEDIFF(CURRENT_TIMESTAMP, `created_at`))/86400) <= 15 and manager not like 'Silver'";
+        $silver = $connection->fetchAll($sql);
+        foreach ($silver as $value) {
             $league->load($value['pk']);
             $league->setData('manager', 'Silver');
+            $league->setPk($value['pk']);
+            $league->save();
+        }
+
+        /**
+         *Setting gold manager
+         */
+
+        $sql = "Select * FROM " . $tableName." where floor(TIME_TO_SEC(TIMEDIFF(CURRENT_TIMESTAMP, `created_at`))/86400) <= 50 and child_total > 5000 and manager not like 'Gold'";
+        $gold = $connection->fetchAll($sql);
+        foreach ($gold as $value) {
+            $league->load($value['pk']);
+            $league->setData('manager', 'Gold');
+            $league->setPk($value['pk']);
+            $league->save();
+        }
+        /**
+         *Setting platinum manager
+         */
+
+        $sql = "Select * FROM " . $tableName." where floor(TIME_TO_SEC(TIMEDIFF(CURRENT_TIMESTAMP, `created_at`))/86400) <= 100 and child_total > 25000 and manager not like 'Platinum'";
+        $platinum = $connection->fetchAll($sql);
+        foreach ($platinum as $value) {
+            $league->load($value['pk']);
+            $league->setData('manager', 'Platinum');
             $league->setPk($value['pk']);
             $league->save();
         }

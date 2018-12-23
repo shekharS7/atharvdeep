@@ -15,9 +15,10 @@ define(
 		console.log(Component);
         return Component.extend({
             defaults: {
+                redirectAfterPlaceOrder: false,
                 template: 'Instamojo_Imojo/payment/imojopaymentmethod'
             },
-			 afterPlaceOrder: function () {
+			afterPlaceOrder: function () {
             window.location.replace(url.build('instamojo/redirect/'));
 			},
             /** Returns send check to info */
