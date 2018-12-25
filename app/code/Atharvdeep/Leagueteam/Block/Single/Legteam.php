@@ -23,12 +23,27 @@ class Legteam extends \Magento\Framework\View\Element\Template
         //get collection of data
         $this->pageConfig->getTitle()->set(__('Single League Team'));
     }
-    public function getCollection()
+    public function getMemberCollection()
     {
         $memberId = $this->getMemberId();
         $collection = $this->leagueFactory->create()->getCollection()
                                             ->addFieldToSelect('*')
-                                            ->addFieldToFilter('path', array('regexp' => $memberId.'[\\]'));
+                                            ->addFieldToFilter('member_id', array('eq' => $memberId));
+        return $collection;
+    }
+    public function getCollection()
+    {
+
+        //get values of current page
+        $page=($this->getRequest()->getParam('p'))? $this->getRequest()->getParam('p') : 1;
+        //get values of current limit
+        $pageSize=($this->getRequest()->getParam('limit'))? $this->getRequest()->getParam('limit') : 5;
+        $memberId = $this->getMemberId();
+        $collection = $this->leagueFactory->create()->getCollection()
+                                            ->addFieldToSelect('*')
+                                            ->addFieldToFilter('path', array('regexp' => $memberId.'[\\]'))
+                                             ->setPageSize($pageSize)
+                                            ->setCurPage($page);
          return $collection;
     }
 
@@ -60,7 +75,7 @@ class Legteam extends \Magento\Framework\View\Element\Template
             $pager = $this->getLayout()->createBlock(
                 'Magento\Theme\Block\Html\Pager',
                 'singleleg.team.pager'
-            )->setCollection(
+            )->setAvailableLimit(array(5=>5,10=>10,15=>15))->setCollection(
                 $this->getCollection() // assign collection to pager
             );
             $this->setChild('pager', $pager);// set pager block in layout
@@ -75,5 +90,51 @@ class Legteam extends \Magento\Framework\View\Element\Template
     public function getPagerHtml()
     {
         return $this->getChildHtml('pager');
+    }
+
+    public function getLevelTwoMember()
+    {
+        $memberList = $this->getMemberCollection()->getFirstItem()->getData('level2');
+        return $memberListArr = explode(",", $memberList);
+    }
+    public function getLevelThreeMember()
+    {
+        $memberList = $this->getMemberCollection()->getFirstItem()->getData('level3');
+        return $memberListArr = explode(",", $memberList);
+    }
+    public function getLevelFourMember()
+    {
+        $memberList = $this->getMemberCollection()->getFirstItem()->getData('level4');
+        return $memberListArr = explode(",", $memberList);
+    }
+    public function getLevelFiveMember()
+    {
+        $memberList = $this->getMemberCollection()->getFirstItem()->getData('level5');
+        return $memberListArr = explode(",", $memberList);
+    }
+    public function getLevelSixMember()
+    {
+        $memberList = $this->getMemberCollection()->getFirstItem()->getData('level6');
+        return $memberListArr = explode(",", $memberList);
+    }
+    public function getLevelSevenMember()
+    {
+        $memberList = $this->getMemberCollection()->getFirstItem()->getData('level7');
+        return $memberListArr = explode(",", $memberList);
+    }
+    public function getLevelEightMember()
+    {
+        $memberList = $this->getMemberCollection()->getFirstItem()->getData('level8');
+        return $memberListArr = explode(",", $memberList);
+    }
+    public function getLevelNineMember()
+    {
+        $memberList = $this->getMemberCollection()->getFirstItem()->getData('level9');
+        return $memberListArr = explode(",", $memberList);
+    }
+    public function getLevelTenMember()
+    {
+        $memberList = $this->getMemberCollection()->getFirstItem()->getData('level10');
+        return $memberListArr = explode(",", $memberList);
     }
 }

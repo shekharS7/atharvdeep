@@ -7,7 +7,6 @@
             <caption class="table-caption"><?php echo __('Grid Record') ?></caption>
             <thead>
                 <tr>
-                    <th scope="col" class="col id"><?php echo __('ID #') ?></th>
                     <th scope="col" class="col title"><?php echo __('Member Id') ?></th>
                      <th scope="col" class="col title"><?php echo __('Member Name') ?></th>
                        <th scope="col" class="col title"><?php echo __('Sponsor Id') ?></th>
@@ -18,13 +17,35 @@
             </thead>
             <tbody>
                 <?php  // read collection as magento1.x and display in list 
-                       foreach ($_gridrecords as $_gridrecord): ?>
-                    <tr>
-                        <td class="col id"><?php echo $_gridrecord->getId() ?></td>
+                  foreach ($_gridrecords as $_gridrecord):
+                    if (in_array($_gridrecord->getMemberId(), $block->getLevelTwoMember()))
+                    {
+                      $trclass = 'level-2';
+                    }elseif (in_array($_gridrecord->getMemberId(), $block->getLevelThreeMember())) {
+                      $trclass = 'level-3';
+                    }elseif (in_array($_gridrecord->getMemberId(), $block->getLevelFourMember())) {
+                      $trclass = 'level-4';
+                    }elseif (in_array($_gridrecord->getMemberId(), $block->getLevelFiveMember())) {
+                      $trclass = 'level-5';
+                    }elseif (in_array($_gridrecord->getMemberId(), $block->getLevelSixMember())) {
+                      $trclass = 'level-6';
+                    }elseif (in_array($_gridrecord->getMemberId(), $block->getLevelSevenMember())) {
+                      $trclass = 'level-7';
+                    }elseif (in_array($_gridrecord->getMemberId(), $block->getLevelEightMember())) {
+                      $trclass = 'level-8';
+                    }elseif (in_array($_gridrecord->getMemberId(), $block->getLevelNineMember())) {
+                      $trclass = 'level-9';
+                    }elseif (in_array($_gridrecord->getMemberId(), $block->getLevelTenMember())) {
+                      $trclass = 'level-10';
+                    }else{
+                      $trclass = '';
+                    }
+                     ?>
+                    <tr class="<?php echo $trclass ;?>">
                         <td class="col shipping"><?php echo $_gridrecord->getMemberId() ?></td>
-                         <td class="col shipping"><?php echo $_gridrecord->getMemberName() ?></td>
-                          <td class="col shipping"><?php echo $_gridrecord->getSponsorId() ?></td>
-                           <td class="col shipping"><?php echo $_gridrecord->getSponsorName() ?></td>
+                        <td class="col shipping"><?php echo $_gridrecord->getMemberName() ?></td>
+                        <td class="col shipping"><?php echo $_gridrecord->getSponsorId() ?></td>
+                        <td class="col shipping"><?php echo $_gridrecord->getSponsorName() ?></td>
                         <td class="col date"><?php echo $block->formatDate($_gridrecord->getCreatedAt()) ?></td>
                     </tr>
                 <?php endforeach; ?>
