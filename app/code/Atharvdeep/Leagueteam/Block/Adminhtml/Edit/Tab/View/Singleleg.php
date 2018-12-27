@@ -57,17 +57,13 @@ class Singleleg extends \Magento\Backend\Block\Widget\Grid\Extended
         parent::_construct();
         $this->setId('league_view_legteam_grid');
         $this->setDefaultSort('created_at', 'desc');
-        $this->setSortable(false);
-        $this->setPagerVisibility(false);
-        $this->setFilterVisibility(false);
+        $this->setUseAjax(true);
+        $this->setSortable(true);
+        $this->setPagerVisibility(true);
+        $this->setFilterVisibility(true);
     }
-    /**
-     * {@inheritdoc}
-     */
-    protected function _preparePage()
-    {
-        $this->getCollection()->setPageSize(10)->setCurPage(1);
-    }
+
+
  
     /**
      * {@inheritdoc}
@@ -77,7 +73,7 @@ class Singleleg extends \Magento\Backend\Block\Widget\Grid\Extended
         $customerId = $this->_coreRegistry->registry(RegistryConstants::CURRENT_CUSTOMER_ID);
         $collection = $this->leagueFactory->create()->getCollection();
         $memberCollection = $collection->addFieldToFilter('customer_id', ['eq' => $customerId]);
-        $memberId = $memberCollection->getFirstItem()->getMemberId();
+        $memberId = $memberCollection->getFirstItem()->getData('member_id');
 
         $collection = $this->leagueFactory->create()->getCollection()->addFieldToSelect('*')->addFieldToFilter('path', array('regexp' => $memberId.'[\\]'));
         $this->setCollection($collection);
@@ -128,25 +124,33 @@ class Singleleg extends \Magento\Backend\Block\Widget\Grid\Extended
                'index' => 'created_at',
             ]
         );
+        $this->addColumn(
+            'path',
+            [
+                'header' => __('Level'),
+                'index' => 'path',
+                'renderer'  => 'Atharvdeep\Leagueteam\Block\Adminhtml\Edit\Tab\Renderer\Level'
+ 
+            ]
+        );
         return parent::_prepareColumns();
     }
+
  
-    /**
-     * Get headers visibility
-     *
-     * @return bool
-     *
-     * @SuppressWarnings(PHPMD.BooleanGetMethodName)
-     */
-    public function getHeadersVisibility()
+    protected function _filterCollection($collection, $column)
     {
-        return $this->getCollection()->getSize() >= 0;
+        $value = trim($column->getFilter()->getValue());
+        $this->getCollection()->getSelect()->where(
+            // do filter
+        );
+ 
+        return $this;
     }
-    /**
-     * {@inheritdoc}
-     */
-    // public function getRowUrl($row)
-    // {
-    //     return $this->getUrl('catalog/product/edit', ['id' => $row->getProductId()]);
-    // }
+ 
+
+    public function formattedStatus($value, $row, $column, $isExport)
+    {
+ 
+        return ucfirst($value);
+    }
 }
