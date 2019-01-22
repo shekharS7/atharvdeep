@@ -67,8 +67,7 @@ class History extends \Magento\Framework\View\Element\Template
         Session $customerSession,
         \Magento\Sales\Model\Order\Config $orderConfig,
         array $data = []
-    )
-    {
+    ) {
         $this->pointsCollectionFactory = $pointsCollectionFactory;
         $this->customerSession = $customerSession;
         $this->orderConfig = $orderConfig;
@@ -81,7 +80,7 @@ class History extends \Magento\Framework\View\Element\Template
     protected function _construct()
     {
         parent::_construct();
-        $this->pageConfig->getTitle()->set(__('Reward Points History'));
+        $this->pageConfig->getTitle()->set(__('Bussiness Vouchers History'));
     }
 
     /**
@@ -111,7 +110,7 @@ class History extends \Magento\Framework\View\Element\Template
                 'desc'
             );
 
-            if ($this->isExpirationEnabled()){
+            if ($this->isExpirationEnabled()) {
                 $this->points->addExpiredField($this->getExpirationDays());
             }
             $this->calcTotal();
@@ -187,7 +186,7 @@ class History extends \Magento\Framework\View\Element\Template
      */
     public function isExpirationEnabled()
     {
-        if ($this->isExpirationEnable!=null){
+        if ($this->isExpirationEnable!=null) {
             return $this->isExpirationEnable;
         }
 
@@ -201,7 +200,8 @@ class History extends \Magento\Framework\View\Element\Template
         return $this->isExpirationEnable;
     }
 
-    public function getExpirationDays(){
+    public function getExpirationDays()
+    {
         return $this->_scopeConfig
             ->getValue(PointsHistory::POINTS_EXPIRATION_PERIOD_XML, ScopeInterface::SCOPE_STORE);
     }

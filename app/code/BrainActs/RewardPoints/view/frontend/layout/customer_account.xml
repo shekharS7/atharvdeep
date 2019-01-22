@@ -9,7 +9,7 @@
             <block class="Magento\Framework\View\Element\Html\Link\Current" ifconfig="brainacts_reward_points/general/enabled" name="customer-account-navigation-points-link">
                 <arguments>
                     <argument name="path" xsi:type="string">points/history</argument>
-                    <argument name="label" xsi:type="string">Reward Points History</argument>
+                    <argument name="label" xsi:type="string">Bussiness Vouchers History</argument>
                 </arguments>
             </block>
         </referenceBlock>
