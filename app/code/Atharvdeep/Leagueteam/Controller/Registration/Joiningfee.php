@@ -98,16 +98,16 @@ class Joiningfee extends \Magento\Framework\App\Action\Action
             //     ->collectShippingRates()
             //     ->setShippingMethod('freeshipping_freeshipping'); //shipping method
              
-            $cart->setPaymentMethod('checkmo'); //payment method
+            $cart->setPaymentMethod('paykun_gateway'); //payment method
             $cart->setInventoryProcessed(false);
-            $cart->getPayment()->importData(['method' => 'checkmo']);
+            $cart->getPayment()->importData(['method' => 'paykun_gateway']);
             $cart->collectTotals();
             $cart = $this->cartRepository->get($cart->getId());
             $order_id = $this->cartManagement->placeOrder($cart->getId());
             $cusesvalue = $this->customerSession->isLoggedIn();
             $this->logger->debug('customerSession value:: '.$cusesvalue);
             $resultRedirect = $this->resultRedirectFactory->create();
-            $resultRedirect->setPath('instamojo/registration/redirect');
+            $resultRedirect->setPath('paykun_checkout_gateway/joining/paykunprocessor');
             return $resultRedirect;
         } catch (\Exception $e) {
             $this->customerSession->logout();
