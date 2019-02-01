@@ -11,7 +11,8 @@ use Paykun\Checkout\Controller\Payment;
 use Paykun\Checkout\Controller\Errors\Error;
 use Paykun\Checkout\Controller\Errors\ErrorCodes;
 
-class PaykunProcessor extends \Magento\Framework\App\Action\Action {
+class PaykunProcessor extends \Magento\Framework\App\Action\Action
+{
 
     const GATEWAY_URL_PROD = "https://checkout.paykun.com/payment";
     const GATEWAY_URL_DEV = "https://sandbox.paykun.com/payment";
@@ -45,7 +46,7 @@ class PaykunProcessor extends \Magento\Framework\App\Action\Action {
         \Paykun\Checkout\Logger\Logger $logger,
         \Magento\Paypal\Helper\Checkout $checkoutHelper,
         \Magento\Framework\Message\ManagerInterface $messageManager
-        ) {
+    ) {
 
             $this->resultJsonFactory    = $resultJsonFactory;
             $this->_encryptor           = $encryptor;
@@ -59,113 +60,94 @@ class PaykunProcessor extends \Magento\Framework\App\Action\Action {
             parent::__construct($context);
     }
 
-    private function addLog($log, $isError = false) {
+    private function addLog($log, $isError = false)
+    {
 
-        if($this->getConfig('debug')) {
-            if(!$isError) {
-
+        if ($this->getConfig('debug')) {
+            if (!$isError) {
                 $this->_logger->addInfo($log);
-
             } else {
-
                 $this->_logger->addError($log);
-
             }
         }
     }
 
-    public function execute() {
+    public function execute()
+    {
 
         $result = $this->resultJsonFactory->create();
         $post = $this->getRequest()->getPostValue();
         try {
-
             //TODO : Check if the agreement is accepted by customer or not
 
             $orderId = $this->getRealOrderId();
 
             //$orderId = 44;
 
-            if($orderId) {
-
+            if ($orderId) {
                 $this->setOrderDetail($orderId);
-                if(in_array($this->_orderDetail->getOrderCurrencyCode(), self::ALLOWED_CURRENCIES)) {
-
+                if (in_array($this->_orderDetail->getOrderCurrencyCode(), self::ALLOWED_CURRENCIES)) {
                     $formData = $this->getPaykunPaymentDetail($orderId);
 
-                    if($formData !== null && $this->_isError !== true) {
+                    if ($formData !== null && $this->_isError !== true) {
                         $this->addLog('Start Payment for Merchant Id => '.
                             $this->getConfig('merchant_gateway_key').', For the order Id => '.$orderId, $formData);
-
                         return $result->setData(['success' => true, 'formData' => $formData, 'gatewayUrl' => self::GATEWAY_URL_PROD]);
-
                     }
 
                     $this->addLog('Failed => ['.$this->_errorCode.'] => '. $this->_errorMessage, true);
                     return $result->setData(['success' => false, 'message' => $this->_errorMessage, 'code' => $this->_errorCode]);
                 } else {
-
                     $this->addLog('Failed => ['.$this->_errorCode.'] => '. $this->_errorMessage, true);
 
                     $this->restoreCart(ErrorCodes::CURRIENCY_NOT_ALLOEWD_STRING);
                     return $result->setData(['success' => false, 'message' => ErrorCodes::CURRIENCY_NOT_ALLOEWD_STRING,
                         'code' => ErrorCodes::CURRIENCY_NOT_ALLOEWD_CODE]);
                 }
-
             } else {
-
                 $this->addLog('Failed => ['.ErrorCodes::SESSION_ORDER_ID_NOT_FOUND_STRING.'] => '. $this->_errorMessage, true);
                 return $result->setData(['success' => false, 'message' => ErrorCodes::SESSION_ORDER_ID_NOT_FOUND_STRING,
                     'code' => ErrorCodes::SESSION_ORDER_ID_NOT_FOUND_CODE]);
-
             }
-
         } catch (\Exception $e) {
-
             $this->addLog('Failed => ['.$this->_errorCode.'] => '. $this->_errorMessage, true);
             return $result->setData(['success' => false, 'message' => $this->_errorMessage, 'code' => $this->_errorCode]);
-
         }
-
-
     }
 
-    private function restoreCart($errorMsg) {
+    private function restoreCart($errorMsg)
+    {
 
 
         $this->_checkoutHelper->cancelCurrentOrder($errorMsg);
 
         if ($this->_checkoutSession->restoreQuote()) {
-
             $this->addLog("Cart restored successfully.");
             //Redirect to payment step
             $this->_redirect('checkout', ['_fragment' => 'payment']);
-
         } else {
-
             $this->_messageManager->addErrorMessage("PAYKUN Couldn't restored your cart please try again.");
             $this->addLog("PAYKUN Couldn't restored your cart please try again.", true);
             $this->_redirect('checkout', ['_fragment' => 'payment']);
-
         }
-
     }
 
-    private function setOrderDetail($orderId) {
+    private function setOrderDetail($orderId)
+    {
 
         $objectManager      = \Magento\Framework\App\ObjectManager::getInstance();
         $orderData          = $objectManager->create('Magento\Sales\Model\Order')->load($orderId);
         $this->_orderDetail = $orderData;
-
     }
 
-    private function getPaykunPaymentDetail($orderId) {
+    private function getPaykunPaymentDetail($orderId)
+    {
 
         try {
             $orderDetail = $this->getOrderDetail($orderId);
 
             //$this->debug($orderDetail, true);
-            if($orderDetail !== null) {
+            if ($orderDetail !== null) {
                 $this->addLog('Order Id Testing => '.$orderId, true);
 
                 $liveOrSandboxMode = $this->getConfig('is_live_or_sandbox') ? true : false;
@@ -174,7 +156,8 @@ class PaykunProcessor extends \Magento\Framework\App\Action\Action {
                     $this->getConfig('merchant_gateway_key'),
                     $this->getConfig('merchant_access_key', true),
                     $this->getConfig('merchant_encryption_key', true),
-                    $liveOrSandboxMode, true
+                    $liveOrSandboxMode,
+                    true
                 );
 
                 // Initializing Order
@@ -185,7 +168,6 @@ class PaykunProcessor extends \Magento\Framework\App\Action\Action {
                     $orderDetail['amount'],
                     $orderDetail['successUrl'],
                     $orderDetail['failureUrl']
-
                 );
                 //$this->debug($orderDetail, true);
                 // Add Customer
@@ -194,7 +176,6 @@ class PaykunProcessor extends \Magento\Framework\App\Action\Action {
                     $orderDetail['customerDetail']['name'],
                     $orderDetail['customerDetail']['email'],
                     $orderDetail['customerDetail']['customerMono']
-
                 );
                 //$this->debug($orderDetail, true);
                 // Add Shipping address
@@ -206,7 +187,6 @@ class PaykunProcessor extends \Magento\Framework\App\Action\Action {
                     $orderDetail['shippingDetail']['city'],
                     $orderDetail['shippingDetail']['pinCode'],
                     $orderDetail['shippingDetail']['addressString']
-
                 );
 
                 // Add Billing Address
@@ -217,14 +197,11 @@ class PaykunProcessor extends \Magento\Framework\App\Action\Action {
                     $orderDetail['billingDetail']['city'],
                     $orderDetail['billingDetail']['pinCode'],
                     $orderDetail['billingDetail']['addressString']
-
-
                 );
                 $obj->setCustomFields(['udf_1' => $orderId]);
 
                 //get form data to submit
                 return $obj->submit();
-
             }
 
             $this->_isError = true;
@@ -234,83 +211,71 @@ class PaykunProcessor extends \Magento\Framework\App\Action\Action {
             $this->addLog('Failed => ['.$this->_errorCode.'] => '. $this->_errorMessage, true);
 
             return null;
-
         } catch (ValidationException $e) {
-
             //$this->restoreCart($e->getMessage());
             $this->_isError = true;
             $this->_errorMessage = $e->getMessage();
             $this->_errorCode = $e->getCode();
             $this->addLog('Failed => ['.$this->_errorCode.'] => '. $this->_errorMessage, true);
             return null;
-
         }
     }
 
-    private function getConfig($name, $isDecrypt = null) {
+    private function getConfig($name, $isDecrypt = null)
+    {
 
         try {
-
             $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
             $conf = $objectManager->get('Magento\Framework\App\Config\ScopeConfigInterface')->getValue('payment/paykun_gateway/'.$name);
-            if($isDecrypt != null) {
+            if ($isDecrypt != null) {
                 $conf = $this->_encryptor->decrypt($conf);
             }
 
             return $conf;
         } catch (ValidationException $e) {
-
             $this->_isError = true;
             $this->_errorMessage = ErrorCodes::INVALID_SYSTEM_CONFIG_STRING;
             $this->_errorCode = ErrorCodes::INVALID_SYSTEM_CONFIG_CODE;
             $this->addLog('Failed => ['.$this->_errorCode.'] => '. $this->_errorMessage, true);
             return null;
-
         }
-
     }
 
-    private function getOrderIdForPaykun($orderId) {
+    private function getOrderIdForPaykun($orderId)
+    {
 
         try {
-
             $orderNumber = str_pad((string)$orderId, 10, '0', STR_PAD_LEFT);
             return $orderNumber;
-
         } catch (ValidationException $e) {
-
             $this->_isError = true;
             $this->_errorMessage = ErrorCodes::SESSION_ORDER_ID_NOT_FOUND_STRING;
             $this->_errorCode = ErrorCodes::SESSION_ORDER_ID_NOT_FOUND_CODE;
             $this->addLog('Failed => ['.$this->_errorCode.'] => '. $this->_errorMessage, true);
         }
-
     }
 
-    private function getRealOrderId() {
+    private function getRealOrderId()
+    {
 
         try {
-
             $order = $this->_checkoutSession->getLastRealOrder();
             return $order->getId();
-
         } catch (ValidationException $e) {
-
             $this->_isError = true;
             $this->_errorMessage = ErrorCodes::SESSION_ORDER_ID_NOT_FOUND_STRING;
             $this->_errorCode = ErrorCodes::SESSION_ORDER_ID_NOT_FOUND_CODE;
             $this->addLog('Failed => ['.$this->_errorCode.'] => '. $this->_errorMessage, true);
             return null;
         }
-
     }
 
-    private function getOrderDetail ($orderId) {
+    private function getOrderDetail($orderId)
+    {
         try {
             $orderData = $this->_orderDetail;
             $paykunOrderDetail = null;
-            if(is_object($orderData) && $orderData->getId()!=''){
-
+            if (is_object($orderData) && $orderData->getId()!='') {
                 $billingData    = (array)$orderData->getBillingAddress()->getData();
                 $shippingData   = (array)$orderData->getShippingAddress()->getData();
 
@@ -354,55 +319,50 @@ class PaykunProcessor extends \Magento\Framework\App\Action\Action {
                     'billingDetail'     => $billingDetail,
 
                 ];
-
             }
             return $paykunOrderDetail;
-
         } catch (ValidationException $e) {
-
             $this->_isError = true;
             $this->_errorMessage = ErrorCodes::SESSION_ORDER_ID_NOT_FOUND_STRING;
             $this->_errorCode = ErrorCodes::SESSION_ORDER_ID_NOT_FOUND_CODE;
             $this->addLog('Failed => ['.$this->_errorCode.'] => '. $this->_errorMessage, true);
             return null;
         }
-
     }
 
-    private function getItemPurpose($orderedItems) {
+    private function getItemPurpose($orderedItems)
+    {
 
         $itemPurpose = "";
         $numItems = count($orderedItems);
         $currentCount = 0;
 
-        foreach($orderedItems as $item){
-
+        foreach ($orderedItems as $item) {
             $extraStuff = ', ';
 
-            if(++$currentCount === $numItems) {
+            if (++$currentCount === $numItems) {
                 $extraStuff = '';
             }
 
             $item_detail = (array) $item->getData();
             $itemPurpose .= $item_detail['name'].$extraStuff;
-
         }
         return $itemPurpose;
     }
 
-    private function getCountryname($countryCode){
+    private function getCountryname($countryCode)
+    {
 
         $country = $this->_countryFactory->create()->loadByCode($countryCode);
         return $country->getName();
-
     }
 
-    private function debug($data, $isExit = true) {
+    private function debug($data, $isExit = true)
+    {
         echo "<pre>";
         print_r($data);
-        if($isExit === true) {
+        if ($isExit === true) {
             exit;
         }
     }
-
 }

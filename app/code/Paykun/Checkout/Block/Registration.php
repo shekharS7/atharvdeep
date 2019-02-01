@@ -145,7 +145,6 @@ class Registration extends \Magento\Framework\View\Element\Template
 
         try {
             $orderDetail = $this->getOrderDetail($orderId);
-
             //$this->debug($orderDetail, true);
             if ($orderDetail !== null) {
                 $this->addLog('Order Id Testing => '.$orderId, true);
@@ -201,7 +200,6 @@ class Registration extends \Magento\Framework\View\Element\Template
                 $obj->setCustomFields(['udf_1' => $orderId]);
 
                 //get form data to submit
-                // return $obj->submit();
                 return $obj->submit();
             }
 

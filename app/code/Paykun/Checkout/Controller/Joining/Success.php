@@ -35,8 +35,7 @@ class Success extends \Magento\Framework\App\Action\Action
         \Magento\Framework\Message\ManagerInterface $messageManager,
         \Magento\Customer\Api\CustomerRepositoryInterface $customerRepository,
         \Magento\Customer\Model\Session $customerSession
-        )
-    {
+    ) {
         $this->_pageFactory         = $pageFactory;
         $this->_checkoutSession     = $checkoutSession;
         $this->_quoteManagement     = $quoteManagement;
@@ -44,6 +43,7 @@ class Success extends \Magento\Framework\App\Action\Action
         $this->_logger              = $logger;
         $this->_checkoutHelper      = $checkoutHelper;
         $this->_encryptor           = $encryptor;
+        $this->eventManager         = $eventManager;
         $this->_messageManager      = $messageManager;
         $this->customerRepository   = $customerRepository;
         $this->customerSession      = $customerSession;
@@ -52,17 +52,14 @@ class Success extends \Magento\Framework\App\Action\Action
         return parent::__construct($context);
     }
 
-    private function addLog($log, $isError = false) {
+    private function addLog($log, $isError = false)
+    {
 
-        if($this->getConfig('debug')) {
-            if(!$isError) {
-
+        if ($this->getConfig('debug')) {
+            if (!$isError) {
                 $this->_logger->addInfo($log);
-
             } else {
-
                 $this->_logger->addError($log);
-
             }
         }
     }
@@ -71,130 +68,102 @@ class Success extends \Magento\Framework\App\Action\Action
      * @return \Magento\Framework\App\ResponseInterface|\Magento\Framework\Controller\ResultInterface|void
      * Handle success transaction request
      */
-    public function execute() {
+    public function execute()
+    {
         try {
-
-
             $this->TXN_ID = $this->getRequest()->getParam('payment-id');
-
-            if(empty(trim($this->TXN_ID))) {
-
+            $this->orderId = null;
+            $this->customerId = null;
+            if (empty(trim($this->TXN_ID))) {
                 $this->messageManager->addErrorMessage(__(' ==> . Transaction id is missing, please contact your online shopping store owner.'));
-
             }
 
             //$order = $this->_checkoutSession->getLastRealOrder();
 
             $liveOrSandboxMode = ($this->getConfig('is_live_or_sandbox')) ? true : false;
             $response = $this->_getcurlInfo($this->TXN_ID);
-
-
-            $this->order_id = $response['data']['transaction']['custom_field_1'];
-
-            $order = $this->getOrderById($this->order_id);
-            $this->customerId = $order->getCustomerId();
-
-
-            if($response == null && $liveOrSandboxMode == true) {
-
+               $this->orderId = $response['data']['transaction']['custom_field_1'];
+                $order = $this->getOrderById($this->orderId);
+                $this->customerId =  $order->getCustomerId();
+            
+            if ($response == null && $liveOrSandboxMode == true) {
                 $errorMsg = 'Server communication failed.';
-
-            } else if($response["status"] == false) {
-
-                if($liveOrSandboxMode == false) {
+            } elseif ($response["status"] == false) {
+                if ($liveOrSandboxMode == false) {
                     $this->messageManager->addWarningMessage('Order successfully placed using PayKun Sandbox environment.');
                     $this->addLog('Order successfully placed using PayKun Sandbox environment.');
-
                 } else {
-
                     $errorMsg = $response["errors"]["errorMessage"];
-
                 }
-
-            } else if ($order->getId()) {
-
+            } elseif ($order->getId()) {
                 $this->addLog('Set payment captured for the Transaction  => '.$this->TXN_ID. ', For the order Id => '.$order->getId());
 
-                if(isset($response['status']) && $response['status'] == "1" || $response['status'] == 1 ) {
-
+                if (isset($response['status']) && $response['status'] == "1" || $response['status'] == 1) {
                     $payment_status = $response['data']['transaction']['status'];
 
-                    if($payment_status === "Success") {
+                    if ($payment_status === "Success") {
                         //if(1) {
                         $resAmout = $response['data']['transaction']['order']['gross_amount'];
 
-                        if(($order->getBaseGrandTotal()	== $resAmout)) {
-
+                        if (($order->getBaseGrandTotal() == $resAmout)) {
                             //Change order status
                             $orderState = \Magento\Sales\Model\Order::STATE_PROCESSING;
                             $order->setState($orderState)->setStatus(\Magento\Sales\Model\Order::STATE_PROCESSING)->save();
                             $this->setTransactionId($order);
-
                         } else {
-
                             //fraud activity happen
                             $errorMesg = 'Paykun detected some fraud activity with the transaction id = '.$this->TXN_ID. ', For the order Id => '. $order->getId();
                             $this->addLog($errorMesg);
                             $this->restoreCart($errorMesg);
                         }
-
-
                     } else {
-
                         $errorMesg = 'Payment is not done. The server responded with payment not done status, if payment is done then please contact
                         your merchant. your transaction id is =>'.$this->TXN_ID. ', For the order Id => '. $order->getId();
 
                         $this->addLog($errorMesg);
                         $this->restoreCart($errorMesg);
-
                     }
                 } else {
-
                     //Payment response failed
                     $errorMesg = 'Something went wrong. Please contact site owner. your transaction id is =>'.$this->TXN_ID. ', For the order Id => '. $order->getId();
                     $this->addLog($errorMesg);
                     $this->restoreCart($errorMesg);
-
                 }
-
             } else {
-
                 $liveOrSandboxMode = $this->getConfig('is_live_or_sandbox') ? true : false;
-                if($liveOrSandboxMode == false) {
+                if ($liveOrSandboxMode == false) {
                     $this->messageManager->addErrorMessage('Order successfully placed using PayKun Sandbox environment.');
                     $this->addLog('Order successfully placed using PayKun Sandbox environment.');
-
                 } else {
                     $this->messageManager->addErrorMessage('An error occurred on the server, please try to place the order again.');
                     $this->addLog('Order Not found due to session expired for the transaction Id=>'.$this->TXN_ID);
                 }
-
-
             }
 
             $this->addLog('Order success for the transaction Id=>'.$this->TXN_ID. ', For the order Id => '. $order->getId());
+                        $this->_logger->addInfo(__METHOD__.__LINE__.$this->customerId);
           //  $this->_redirect('checkout/onepage/success');
             $this->eventManager->dispatch(
-                                 'after_registration_bv_distribution',
-                                 [
+                'after_registration_bv_distribution',
+                [
                                  'customer_id' => $this->customerId
                                  ]
-                             );
-            $customer = $this->customerRepository->getById($this->customerId);
-            $customer->setCustomAttribute('account_is_active', 1);
-            $this->customerRepository->save($customer);
-            $this->customerSession->logout();
+            );
+            if ($this->customerId) {
+                $customer = $this->customerRepository->getById($this->customerId);
+                $customer->setCustomAttribute('account_is_active', 1);
+                $this->customerRepository->save($customer);
+                $this->customerSession->logout();
+            }
             $this->_redirect($this->urlBuilder->getUrl('leagueteam/index/thankyou', ['order_id'=>$this->orderId]));
-
         } catch (\Magento\Framework\Exception\PaymentException $ex) {
-
             $this->messageManager->addErrorMessage($ex->getMessage(). __(' ==> . Something went wrong please contact your online shopping store owner.'));
             $this->addLog('Something went wrong for the transaction id =>'.$this->TXN_ID);
         }
-
     }
 
-    protected function getOrderById($order_id) {
+    protected function getOrderById($order_id)
+    {
 
         $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
 
@@ -202,10 +171,10 @@ class Success extends \Magento\Framework\App\Action\Action
             ->load($order_id);
 
         return $order;
-
     }
 
-    private function restoreCart($errorMsg) {
+    private function restoreCart($errorMsg)
+    {
 
         $this->_checkoutHelper->cancelCurrentOrder($errorMsg);
 
@@ -221,19 +190,21 @@ class Success extends \Magento\Framework\App\Action\Action
         //     $this->_redirect('checkout', ['_fragment' => 'payment']);
 
         // }
-        $customer = $this->customerRepository->getById($this->customerId);
-        $customer->setCustomAttribute('account_is_active', 0);
-        $this->customerRepository->save($customer);
-        $this->customerSession->logout();
+        if ($this->customerId) {
+            $customer = $this->customerRepository->getById($this->customerId);
+            $customer->setCustomAttribute('account_is_active', 0);
+            $this->customerRepository->save($customer);
+            $this->customerSession->logout();
+        }
         $this->_redirect($this->urlBuilder->getUrl('leagueteam/index/thankyou', ['order_id'=>$this->orderId]));
-
     }
 
     /**
      * @param $orderObject
      * Set the transaction id received from the paykun to the order
      */
-    private function setTransactionId($orderObject) {
+    private function setTransactionId($orderObject)
+    {
 
         $payment = $orderObject->getPayment($this->TXN_ID);
 
@@ -241,7 +212,7 @@ class Success extends \Magento\Framework\App\Action\Action
         $payment->setTransactionId($this->TXN_ID);
         $payment->setIsTransactionClosed(true);
         //setAdditionalInformation
-        $payment->setTransactionAdditionalInfo( "Paykun Txn Id => ", htmlentities($this->TXN_ID) );
+        $payment->setTransactionAdditionalInfo("Paykun Txn Id => ", htmlentities($this->TXN_ID));
 
         $formatedPrice = $orderObject->getBaseCurrency()->formatTxt(
             $orderObject->getBaseGrandTotal()
@@ -251,7 +222,7 @@ class Success extends \Magento\Framework\App\Action\Action
 
         $transaction = $this->addTransaction($orderObject, $payment);
 
-        $payment->addTransactionCommentsToOrder( $transaction, $message);
+        $payment->addTransactionCommentsToOrder($transaction, $message);
         $payment->setParentTransactionId(null);
 
         $payment->save();
@@ -269,7 +240,8 @@ class Success extends \Magento\Framework\App\Action\Action
      * you can see this transaction by Admin => Sales => Orders => click on the order you want to check => And click on the transaction tab
      * If you see transaction type capture then payment is done for this order
      */
-    private function addTransaction($order, $payment) {
+    private function addTransaction($order, $payment)
+    {
 
         $trans = $this->_transactionBuilder;
         $transaction = $trans->setPayment($payment)
@@ -296,17 +268,18 @@ class Success extends \Magento\Framework\App\Action\Action
     {
 
         try {
-
-            if(!$iTransactionId) return null;
+            if (!$iTransactionId) {
+                return null;
+            }
             $cUrl = 'https://api.paykun.com/v1/merchant/transaction/' . $iTransactionId . '/';
             $merchantId = $this->getConfig("merchant_gateway_key");
             $accessToken = $this->getConfig("merchant_access_key", true);
 
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_URL, $cUrl);
-            curl_setopt($ch, CURLOPT_HEADER, FALSE);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, TRUE);
+            curl_setopt($ch, CURLOPT_HEADER, false);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
             curl_setopt($ch, CURLOPT_HTTPHEADER, array("MerchantId:$merchantId", "AccessToken:$accessToken"));
 
             $response = curl_exec($ch);
@@ -317,31 +290,30 @@ class Success extends \Magento\Framework\App\Action\Action
             curl_close($ch);
 
             return ($error_message) ? null : $res;
-
         } catch (\Exception $e) {
             $this->addLog($e->getMessage());
             return null;
             //throw $e;
-
         }
     }
 
-    private function getConfig($name, $isDecrypt = null) {
+    private function getConfig($name, $isDecrypt = null)
+    {
 
         $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
         $conf = $objectManager->get('Magento\Framework\App\Config\ScopeConfigInterface')->getValue('payment/paykun_gateway/'.$name);
-        if($isDecrypt != null) {
+        if ($isDecrypt != null) {
             $conf = $this->_encryptor->decrypt($conf);
         }
 
         return $conf;
-
     }
 }
-function debug($data, $isExit = true) {
+function debug($data, $isExit = true)
+{
     echo "<pre>";
     print_r($data);
-    if($isExit === true) {
+    if ($isExit === true) {
         exit;
     }
 }

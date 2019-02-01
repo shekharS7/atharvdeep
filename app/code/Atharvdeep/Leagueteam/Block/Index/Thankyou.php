@@ -31,6 +31,7 @@ class Thankyou extends \Magento\Framework\View\Element\Template
         $this->urlBuilder = \Magento\Framework\App\ObjectManager::getInstance()
                         ->get('Magento\Framework\UrlInterface');
         parent::__construct($context);
+        $this->pageConfig->getTitle()->set(__('Thankyou'));
     }
 
      public function getOrderId()

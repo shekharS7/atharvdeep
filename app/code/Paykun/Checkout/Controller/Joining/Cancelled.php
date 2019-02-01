@@ -49,6 +49,8 @@ class Cancelled extends \Magento\Framework\App\Action\Action
 
     protected $TXN_ID;
     protected $_encryptor;
+    protected $orderId;
+    protected $customerId;
     public function __construct(
         \Magento\Framework\App\Action\Context $context,
         \Magento\Checkout\Model\Session $checkoutSession,
@@ -63,8 +65,7 @@ class Cancelled extends \Magento\Framework\App\Action\Action
         \Magento\Framework\Encryption\EncryptorInterface $encryptor,
         \Magento\Customer\Api\CustomerRepositoryInterface $customerRepository,
         \Magento\Customer\Model\Session $customerSession
-    )
-    {
+    ) {
         $this->_checkoutSession     = $checkoutSession;
         $this->_orderFactory        = $orderFactory;
         $this->_payflowModelFactory = $payflowModelFactory;
@@ -82,17 +83,14 @@ class Cancelled extends \Magento\Framework\App\Action\Action
         parent::__construct($context);
     }
 
-    private function addLog($log, $isError = false) {
+    private function addLog($log, $isError = false)
+    {
 
-        if($this->getConfig('debug')) {
-            if(!$isError) {
-
+        if ($this->getConfig('debug')) {
+            if (!$isError) {
                 $this->_logger->addInfo($log);
-
             } else {
-
                 $this->_logger->addError($log);
-
             }
         }
     }
@@ -106,69 +104,62 @@ class Cancelled extends \Magento\Framework\App\Action\Action
     public function execute()
     {
         $errorMsg = null;
+            $this->orderId = null;
+            $this->customerId = null;
         try {
-
             $liveOrSandboxMode = $this->getConfig('is_live_or_sandbox') ? true : false;
-            if(!$liveOrSandboxMode) {
-
+            if (!$liveOrSandboxMode) {
                 $this->messageManager->addWarningMessage('Order cancelled! (PayKun Sandbox mode).');
                 $this->addLog('Order cancelled! (PayKun Sandbox mode).');
-
             } else {
-
                 $this->setTransactionId();
                 $errorMsg = trim(strip_tags('Payment cancelled. '.'**Paykun Transaction Id => '. $this->TXN_ID." **"));
 
                 $response = $this->_getcurlInfo($this->TXN_ID);
-                if($response == null) {
-
+                $this->orderId = $response['data']['transaction']['custom_field_1'];
+                $order = $this->getOrderById($this->orderId);
+                $this->customerId =  $order->getCustomerId();
+            
+                if ($response == null) {
                     $errorMsg = 'Server communication failed.';
-
-                } else if($response["status"] == false) {
-
+                } elseif ($response["status"] == false) {
                     $errorMsg = $response["errors"]["errorMessage"];
-
                 } else {
-
                     $order_id = $response['data']['transaction']['custom_field_1'];
                     $order = $this->getOrderById($order_id);
 
                     //$order = $this->_checkoutSession->getLastRealOrder();
 
                     if ($order->getId()) {
-
                         $this->addLog($errorMsg. ', For the order Id => '.$order->getId());
                         $this->paymentFailures->handle($order->getQuoteId(), $errorMsg);
-
                     } else {
                         $this->addLog('Order not found for the transaction id => '.$this->TXN_ID);
                     }
                     $this->setTransactionIdToOrder();
-
                 }
             }
 
             $this->restoreCart($errorMsg);
-
         } catch (\Exception $ex) {
-
             $this->setTransactionIdToOrder();
             $this->restoreCart($errorMsg);
             $this->_messageManager->addErrorMessage($ex->getMessage());
             $this->addLog($ex.' => '.$this->TXN_ID);
            // $this->_redirect('checkout', ['_fragment' => 'payment']);
-            $customerId = $order->getCustomerId();
 
-            $customer = $this->customerRepository->getById($customerId);
-            $customer->setCustomAttribute('account_is_active', 0);
-            $this->customerRepository->save($customer);
-            $this->customerSession->logout();
-            $this->_redirect($this->urlBuilder->getUrl('leagueteam/index/thankyou', ['order_id'=>$order_id]));
+            if ($this->customerId) {
+                $customer = $this->customerRepository->getById($this->customerId);
+                $customer->setCustomAttribute('account_is_active', 0);
+                $this->customerRepository->save($customer);
+                $this->customerSession->logout();
+            }
+            $this->_redirect($this->urlBuilder->getUrl('leagueteam/index/thankyou', ['order_id'=>$this->orderId]));
         }
-
     }
 
-    protected function getOrderById($order_id) {
+    protected function getOrderById($order_id)
+    {
 
         $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
 
@@ -176,23 +167,21 @@ class Cancelled extends \Magento\Framework\App\Action\Action
             ->load($order_id);
 
         return $order;
-
     }
 
-    private function setTransactionId() {
+    private function setTransactionId()
+    {
 
         $this->TXN_ID = $this->getRequest()->getParam('payment-id');
 
-        if(empty(trim($this->TXN_ID))) {
-
+        if (empty(trim($this->TXN_ID))) {
             $this->messageManager->addErrorMessage('Transaction Id is missing from PAYKUN');
             $this->addLog("Transaction Id is missing from PAYKUN");
-
         }
-
     }
 
-    private function restoreCart($errorMsg) {
+    private function restoreCart($errorMsg)
+    {
 
         $this->_checkoutHelper->cancelCurrentOrder($errorMsg);
 
@@ -209,27 +198,23 @@ class Cancelled extends \Magento\Framework\App\Action\Action
         //     $this->_redirect('checkout', ['_fragment' => 'payment']);
 
         // }
-        $order_id = $response['data']['transaction']['custom_field_1'];
-        $order = $this->getOrderById($order_id);
-        $customerId = $order->getCustomerId();
-        $customer = $this->customerRepository->getById($customerId);
-        $customer->setCustomAttribute('account_is_active', 0);
-        $this->customerRepository->save($customer);
-        $this->customerSession->logout();
-        $this->_redirect($this->urlBuilder->getUrl('leagueteam/index/thankyou', ['order_id'=>$order_id]));
-
+        if ($this->customerId) {
+            $customer = $this->customerRepository->getById($this->customerId);
+            $customer->setCustomAttribute('account_is_active', 0);
+            $this->customerRepository->save($customer);
+            $this->customerSession->logout();
+        }
+        $this->_redirect($this->urlBuilder->getUrl('leagueteam/index/thankyou', ['order_id'=>$this->orderId]));
     }
 
-    private function setTransactionIdToOrder() {
+    private function setTransactionIdToOrder()
+    {
         try {
-
             $quote = $this->_checkoutSession->getQuote();
-            if($quote) {
-
+            if ($quote) {
                 $order = $this->_quoteManagement->submit($quote);
 
                 if ($order) {
-
                     $payment = $order->getPayment($this->TXN_ID);
                     $payment->setTransactionId(htmlentities($this->TXN_ID));
                     $payment
@@ -241,24 +226,16 @@ class Cancelled extends \Magento\Framework\App\Action\Action
                     $this->addTransaction($order, $payment, $this->TXN_ID);
                     $this->addLog("Paykun Cancelled Txn Id => ".$this->TXN_ID);
                 } else {
-
                     $this->addLog("Session has been expired.");
                     $this->messageManager->addErrorMessage('Your session has been expired.');
-
                 }
-
             } else {
-
                 $this->messageManager->addErrorMessage('Your session has been expired.');
                 $this->addLog("Session has been expired.");
-
             }
-
         } catch (\Magento\Framework\Exception\PaymentException $ex) {
-
             $this->messageManager->addErrorMessage($ex->getMessage(). __(' ==> . Something went wrong please contact your online shopping store owner.'));
             $this->addLog("Something went wrong.");
-
         }
     }
 
@@ -270,7 +247,8 @@ class Cancelled extends \Magento\Framework\App\Action\Action
      * you can see this transaction by Admin => Sales => Orders => click on the order you want to check => And click on the transaction tab
      * If you see transaction type capture then payment is done for this order
      */
-    private function addTransaction($order, $payment, $transactionId) {
+    private function addTransaction($order, $payment, $transactionId)
+    {
 
         $trans = $this->_transactionBuilder;
         $transaction = $trans->setPayment($payment)
@@ -293,23 +271,25 @@ class Cancelled extends \Magento\Framework\App\Action\Action
         return $transaction;
     }
 
-    private function getConfig($name, $isDecrypt = null) {
+    private function getConfig($name, $isDecrypt = null)
+    {
 
         $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
         $conf = $objectManager->get('Magento\Framework\App\Config\ScopeConfigInterface')->getValue('payment/paykun_gateway/'.$name);
-        if($isDecrypt != null) {
+        if ($isDecrypt != null) {
             $conf = $this->_encryptor->decrypt($conf);
         }
 
         return $conf;
-
     }
 
-    private function _getcurlInfo($iTransactionId) {
+    private function _getcurlInfo($iTransactionId)
+    {
 
         try {
-
-            if(!$iTransactionId) return null;
+            if (!$iTransactionId) {
+                return null;
+            }
 
             $cUrl        = 'https://api.paykun.com/v1/merchant/transaction/' . $iTransactionId . '/';
             $merchantId  = $this->getConfig("merchant_gateway_key");
@@ -317,9 +297,9 @@ class Cancelled extends \Magento\Framework\App\Action\Action
 
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_URL, $cUrl);
-            curl_setopt($ch, CURLOPT_HEADER, FALSE);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, TRUE);
+            curl_setopt($ch, CURLOPT_HEADER, false);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
             curl_setopt($ch, CURLOPT_HTTPHEADER, array("MerchantId:$merchantId", "AccessToken:$accessToken"));
 
             $response       = curl_exec($ch);
@@ -330,22 +310,19 @@ class Cancelled extends \Magento\Framework\App\Action\Action
             curl_close($ch);
 
             return ($error_message) ? null : $res;
-
         } catch (\Exception $e) {
-
             $this->addLog($e->getMessage());
             return null;
             //throw $e;
-
         }
-
     }
 }
 
-function debug($data, $isExit = false) {
+function debug($data, $isExit = false)
+{
     echo "<pre>";
     print_r($data);
-    if($isExit === true) {
+    if ($isExit === true) {
         exit;
     }
 }
