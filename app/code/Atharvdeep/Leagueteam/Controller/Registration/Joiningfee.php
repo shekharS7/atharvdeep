@@ -107,13 +107,13 @@ class Joiningfee extends \Magento\Framework\App\Action\Action
             $cusesvalue = $this->customerSession->isLoggedIn();
             $this->logger->debug('customerSession value:: '.$cusesvalue);
             $resultRedirect = $this->resultRedirectFactory->create();
-            $resultRedirect->setPath('paykun_checkout_gateway/joining/paykunprocessor');
+            $resultRedirect->setPath('paykun_checkout_gateway/joining/registration');
             return $resultRedirect;
         } catch (\Exception $e) {
             $this->customerSession->logout();
             $this->messageManager->addError('Unable to Proceed for payment 
                 ');
-           // $this->logger->debug('Joiningfee Error:: '.$e->getMessage());
+            $this->logger->debug('Joiningfee Error:: '.$e->getMessage());
             $resultRedirect = $this->resultRedirectFactory->create();
             $resultRedirect->setPath('customer/account/login');
             return $resultRedirect;
