@@ -133,7 +133,8 @@ class AccountManagement extends CustomerAccountManagement
         \Magento\Framework\Api\ExtensibleDataObjectConverter $extensibleDataObjectConverter,
         SearchCriteriaBuilder $searchCriteriaBuilder,
         FilterBuilder $filterBuilder,
-        AdvancedLoginConfigProvider $advancedLoginConfigProvider
+        AdvancedLoginConfigProvider $advancedLoginConfigProvider,
+        \Magento\Framework\UrlInterface $urlBuilder
     ) {
         parent::__construct(
             $customerFactory,
@@ -172,6 +173,7 @@ class AccountManagement extends CustomerAccountManagement
         $this->advancedLoginConfigProvider = $advancedLoginConfigProvider;
         $this->mathRandom = $mathRandom;
         $this->addressRepository = $addressRepository;
+        $this->urlBuilder = $urlBuilder;
     }
 
     /**
@@ -197,7 +199,11 @@ class AccountManagement extends CustomerAccountManagement
 
         if ($customer->getCustomAttribute('account_is_active')) {
             if ($customer->getCustomAttribute('account_is_active')->getValue()== 0) {
-                throw new InvalidEmailOrPasswordException(__('Invalid login or password.'));
+                $value = $this->urlBuilder->getUrl('leagueteam/registration/joiningfee', ['customer_id' => $customer->getId()]);
+                throw new LocalizedException(__(
+                    'This account is not confirmed due to pending payment. <a href="%1">Click here</a> to payment against this account.',
+                    $value
+                ));
             }
         }
         $this->checkPasswordStrength($password);
@@ -361,7 +367,7 @@ class AccountManagement extends CustomerAccountManagement
             $formattedNumber = sprintf('%05d', $customerId+1);
             $memberId = 'AVD'.$formattedNumber;
             $customer->setCustomAttribute('member_id', $memberId);
-            $customer->setCustomAttribute('account_is_active', 1);
+            $customer->setCustomAttribute('account_is_active', 0);
         }
 
         $customerAddresses = $customer->getAddresses() ?: [];

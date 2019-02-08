@@ -8,7 +8,7 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Cron:etc/crontab.xsd">
     <group id="default">
         <job name="update_member_days" instance="Atharvdeep\Leagueteam\Model\CronJob\UpdateDays" method="execute">
-            <schedule>*/1 * * * *</schedule>
+            <schedule>0 0 * * *</schedule>
         </job>
     </group>
 </config>
