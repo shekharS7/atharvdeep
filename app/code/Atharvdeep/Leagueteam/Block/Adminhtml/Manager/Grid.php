@@ -54,7 +54,7 @@ class Grid extends \Magento\Backend\Block\Widget\Grid\Extended
      */
     protected function _prepareCollection()
     {
-        $collection = $this->leagueFactory->create()->getCollection()->addFieldToFilter('manager', array('in' => array('Silver','Gold')));
+        $collection = $this->leagueFactory->create()->getCollection()->addFieldToFilter('manager', array('in' => array('Silver','Gold','Diamond','Platinum')));
         $this->setCollection($collection);
         parent::_prepareCollection();
 

@@ -65,7 +65,7 @@ class UpdateDays
          *Setting silver manager
          */
         //Select Data from table
-        $sql = "Select * FROM " . $tableName." where (LENGTH(level2) - LENGTH(REPLACE(level2, ',', ''))+1) = 5 and  (LENGTH(level3) - LENGTH(REPLACE(level3, ',', ''))+1) = 25  and floor(TIME_TO_SEC(TIMEDIFF(CURRENT_TIMESTAMP, `created_at`))/86400) <= 15 and manager not like 'Silver'";
+        $sql = "Select * FROM " . $tableName." where (LENGTH(level2) - LENGTH(REPLACE(level2, ',', ''))+1) = 5 and  (LENGTH(level3) - LENGTH(REPLACE(level3, ',', ''))+1) = 25  and floor(TIME_TO_SEC(TIMEDIFF(CURRENT_TIMESTAMP, `created_at`))/86400) <= 25 and manager not like 'Silver'";
         $silver = $connection->fetchAll($sql);
         foreach ($silver as $value) {
             $league->load($value['pk']);
@@ -78,7 +78,7 @@ class UpdateDays
          *Setting gold manager
          */
 
-        $sql = "Select * FROM " . $tableName." where floor(TIME_TO_SEC(TIMEDIFF(CURRENT_TIMESTAMP, `created_at`))/86400) <= 50 and child_total > 5000 and manager not like 'Gold'";
+        $sql = "Select * FROM " . $tableName." where floor(TIME_TO_SEC(TIMEDIFF(CURRENT_TIMESTAMP, `created_at`))/86400) <= 100 and child_total > 5000 and manager not like 'Gold'";
         $gold = $connection->fetchAll($sql);
         foreach ($gold as $value) {
             $league->load($value['pk']);
@@ -87,10 +87,22 @@ class UpdateDays
             $league->save();
         }
         /**
-         *Setting platinum manager
+         *Setting Diamond manager
          */
 
-        $sql = "Select * FROM " . $tableName." where floor(TIME_TO_SEC(TIMEDIFF(CURRENT_TIMESTAMP, `created_at`))/86400) <= 100 and child_total > 25000 and manager not like 'Platinum'";
+        $sql = "Select * FROM " . $tableName." where floor(TIME_TO_SEC(TIMEDIFF(CURRENT_TIMESTAMP, `created_at`))/86400) <= 200 and child_total > 25000 and manager not like 'Diamond'";
+        $platinum = $connection->fetchAll($sql);
+        foreach ($platinum as $value) {
+            $league->load($value['pk']);
+            $league->setData('manager', 'Diamond');
+            $league->setPk($value['pk']);
+            $league->save();
+        }
+         /**
+         *Setting Platinum manager
+         */
+
+        $sql = "Select * FROM " . $tableName." where child_total > 50000 and manager not like 'Platinum'";
         $platinum = $connection->fetchAll($sql);
         foreach ($platinum as $value) {
             $league->load($value['pk']);
