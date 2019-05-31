@@ -257,7 +257,7 @@
     </fieldset>
     <div class="actions-toolbar">
         <div class="primary">
-            <button type="submit" class="action submit primary" title="<?php /* @escapeNotVerified */ echo __('Pay Now INR 1700') ?>"><span><?php /* @escapeNotVerified */ echo __('Pay Now INR 1700') ?></span></button>
+            <button type="submit" class="action submit primary" title="<?php /* @escapeNotVerified */ echo __('Pay Now INR 2500') ?>"><span><?php /* @escapeNotVerified */ echo __('Pay Now INR 2500') ?></span></button>
         </div>
         <div class="secondary">
             <a class="action back" href="<?php echo $block->escapeUrl($block->getBackUrl()) ?>"><span><?php /* @escapeNotVerified */ echo __('Back') ?></span></a>
@@ -272,7 +272,7 @@ require([
 
     var dataForm = $('#form-validate');
     var ignore = <?php /* @escapeNotVerified */ echo $_dob->isEnabled() ? '\'input[id$="full"]\'' : 'null'; ?>;
-    
+
     dataForm.mage('validation', {
     <?php if ($_dob->isEnabled()): ?>
         errorPlacement: function(error, element) {
@@ -328,10 +328,10 @@ $("#sponsor_id").change(function(){
                 data: {
                     member_id: member_id,
                 },
-            complete: function(response) {             
+            complete: function(response) {
                 MemberName = response.responseJSON.MemberName;
                 $('#sponsor_name').val(MemberName);
-                console.log(response.responseJSON.MemberName);   
+                console.log(response.responseJSON.MemberName);
                 },
                 error: function (xhr, status, errorThrown) {
                     console.log('Error happens. Try again.');

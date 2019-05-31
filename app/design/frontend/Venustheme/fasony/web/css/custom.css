@@ -13,32 +13,42 @@ ul.header.links {
     float: right;
 }
 .level-1 {
-    background-color : #FFFF00;
+    background-color : #BDB76B;
+    /*  dark khaki*/
 }
 .level-2 {
-    background-color : #00FF00 ;
+    background-color : #FFA07A;
+    /* light salmon */
 }
 .level-3 {
-    background-color : #00FFFF;
+    background-color : #87CEFA;
+    /* light sky blue */
 }
 .level-4 {
-    background-color : #FF00FF;
+    background-color : #BC8F8F;
+    /* rosy brown */
 }
 .level-5 {
-    background-color : #808080;
+    background-color : #00BFFF;
+    /* deep sky blue  */
 }
 .level-6 {
-    background-color : #008080;
+    background-color : #8A2BE2;
+    /* blue violet */
 }
 .level-7 {
-    background-color : #A52A2A;
+    background-color : #FF8C00;
+    /*  dark orange */
 }
 .level-8 {
-    background-color : #008000;
+    background-color : #808080;
+    /* grey  */
 }
 .level-9 {
-    background-color : #800080;
+    background-color : #ADFF2F;
+    /* green yellow */
 }
 .level-10{
-    background-color : #FF0000;
+    background-color : #808000;
+    /* olive */
 }
