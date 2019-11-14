@@ -42,8 +42,8 @@ class AuthorizationRequest implements BuilderInterface
         /** @var PaymentDataObjectInterface $payment */
         $payment = $buildSubject['payment'];
         $order = $payment->getOrder();
-        //$address = $order->getShippingAddress();
-        $address = $order->getBillingAddress();
+        $address = $order->getShippingAddress();
+
         return [
             'TXN_TYPE' => 'A',
             'INVOICE' => $order->getOrderIncrementId(),
