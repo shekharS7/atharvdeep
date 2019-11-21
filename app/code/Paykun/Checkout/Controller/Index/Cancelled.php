@@ -108,8 +108,8 @@ class Cancelled extends \Magento\Framework\App\Action\Action
                 $this->messageManager->addWarningMessage('Order cancelled! (PayKun Sandbox mode).');
                 $this->addLog('Order cancelled! (PayKun Sandbox mode).');
 
-            } else */
-            {
+            } else {*/
+            
 
                 $this->setTransactionId();
                 $errorMsg = trim(strip_tags('Payment cancelled. '.'**Paykun Transaction Id => '. $this->TXN_ID." **"));
@@ -141,7 +141,7 @@ class Cancelled extends \Magento\Framework\App\Action\Action
                     $this->setTransactionIdToOrder();
 
                 }
-            }
+            //}
 
             $this->restoreCart($errorMsg);
 
@@ -294,7 +294,7 @@ class Cancelled extends \Magento\Framework\App\Action\Action
 
             $cUrl = 'https://api.paykun.com/v1/merchant/transaction/' . $iTransactionId . '/';
             if($mode == false) {
-                $cUrl = 'https://sandbox.paykun.com/api/v1/merchant/transaction/' . $iTransactionId . '/';;
+                $cUrl = 'https://sandbox.paykun.com/api/v1/merchant/transaction/' . $iTransactionId . '/';
             }
 
             $merchantId  = $this->getConfig("merchant_gateway_key");
