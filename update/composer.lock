@@ -343,7 +343,7 @@
                 "shasum": "303513c83d4f6562ff1480a954bb298b37261fb3"
             },
             "require": {
-                "composer/composer": "1.4.1",
+                "composer/composer": "^1.6",
                 "php": "~5.5.0|~5.6.0|~7.0.0|~7.1.0",
                 "symfony/console": "~2.3, !=2.7.0"
             },
